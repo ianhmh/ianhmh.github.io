@@ -1,18 +1,30 @@
 import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client@0.0.15/dist/index.min.js";
 
-async function runGradioApp() {
-    const response_0 = await fetch("https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png");
-    const exampleImage = await response_0.blob();
-    
-    const client = await Client.connect("ianhmh/laicc-model-app");
-    const result = await client.predict("/predict", { 
-        img: exampleImage, 
-    });
+document.getElementById('inputForm').addEventListener('submit', async function(event) {
+    event.preventDefault(); // Prevent the default form submission
 
-    console.log(result.data);
+    const inputImage = document.getElementById('inputImage').files[0];
+    const outputDiv = document.getElementById('output');
 
-    // Display the result in the HTML
-    document.getElementById('output').textContent = JSON.stringify(result.data);
-}
+    if (!inputImage) {
+        outputDiv.textContent = 'Please upload an image.';
+        return;
+    }
 
-runGradioApp();
+    // Convert the image file to a Blob
+    const reader = new FileReader();
+    reader.onloadend = async function() {
+        const exampleImage = new Blob([new Uint8Array(reader.result)], { type: inputImage.type });
+
+        const client = await Client.connect("ianhmh/laicc-model-app");
+        const result = await client.predict("/predict", { 
+            img: exampleImage, 
+        });
+
+        console.log(result.data);
+
+        // Display the result in the HTML
+        outputDiv.textContent = JSON.stringify(result.data);
+    };
+    reader.readAsArrayBuffer(inputImage);
+});
