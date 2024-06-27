@@ -1,47 +1,18 @@
-document.getElementById('inputForm').addEventListener('submit', async function(event) {
-    event.preventDefault(); // Prevent the default form submission
+import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client@0.0.15/dist/index.min.js";
 
-    const inputImage = document.getElementById('inputImage').files[0];
-    const outputDiv = document.getElementById('output');
+async function runGradioApp() {
+    const response_0 = await fetch("https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png");
+    const exampleImage = await response_0.blob();
+    
+    const client = await Client.connect("ianhmh/laicc-model-app");
+    const result = await client.predict("/predict", { 
+        img: exampleImage, 
+    });
 
-    if (!inputImage) {
-        outputDiv.textContent = 'Please upload an image.';
-        return;
-    }
+    console.log(result.data);
 
-    // Convert the image file to a base64 string
-    const reader = new FileReader();
-    reader.onloadend = async function() {
-        const base64Image = reader.result.split(',')[1];
+    // Display the result in the HTML
+    document.getElementById('output').textContent = JSON.stringify(result.data);
+}
 
-        // The endpoint URL for your Gradio app on Hugging Face
-        const endpointUrl = 'YOUR_GRADIO_APP_ENDPOINT_URL';
-
-        // Create the request payload
-        const payload = {
-            input: base64Image
-        };
-
-        // Make the POST request to the endpoint
-        try {
-            const response = await fetch(endpointUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                // Display the result in the output div
-                outputDiv.textContent = `Output: ${data.output}`;
-            } else {
-                outputDiv.textContent = `Error: ${response.statusText}`;
-            }
-        } catch (error) {
-            outputDiv.textContent = `Error: ${error.message}`;
-        }
-    };
-    reader.readAsDataURL(inputImage);
-});
+runGradioApp();
